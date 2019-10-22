@@ -84,4 +84,63 @@ foreach($value in $ThreatValues){
     $Index++
 }
 
-$Start + $TrafficResult + $ThreatResult + $End | Out-File $OutputPath
+#Work out all the config strings
+$ConfigResult = ""
+$Index = 1
+
+foreach($value in $ConfigValues){
+    $value = $value.trim().replace(" ","").replace("/","").replace("_","").replace("IP","_IP")
+    if($value -ne "FUTUREUSE"){
+    $ConfigResult += @"
+    {
+        "title": "$value",
+        "extractor_type": "split_and_index",
+        "converters": [],
+        "order": 0,
+        "cursor_strategy": "copy",
+        "source_field": "message",
+        "target_field": "$value",
+        "extractor_config": {
+          "index": $Index,
+          "split_by": ","
+        },
+        "condition_type": "string",
+        "condition_value": ",CONFIG,"
+      },
+
+"@
+    }
+    $Index++
+}
+
+#Work out all the system strings
+$SystemResult = ""
+$Index = 1
+
+foreach($value in $SystemValues){
+    $value = $value.trim().replace(" ","").replace("/","").replace("_","").replace("IP","_IP")
+    if($value -ne "FUTUREUSE"){
+    $ConfigResult += @"
+    {
+        "title": "$value",
+        "extractor_type": "split_and_index",
+        "converters": [],
+        "order": 0,
+        "cursor_strategy": "copy",
+        "source_field": "message",
+        "target_field": "$value",
+        "extractor_config": {
+          "index": $Index,
+          "split_by": ","
+        },
+        "condition_type": "string",
+        "condition_value": ",SYSTEM,"
+      },
+
+"@
+    }
+    $Index++
+}
+
+#Mash everything together and kick it out as a file
+$Start + $TrafficResult + $ThreatResult + $ConfigResult + $SystemResult + $End | Out-File $OutputPath
